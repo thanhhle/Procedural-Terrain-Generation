@@ -12,7 +12,7 @@ public class MapGeneratorEditor : Editor
 
         if (DrawDefaultInspector())
         {
-            if (mapGenerator.AutoUpdate)
+            if (mapGenerator.autoUpdate)
             {
                 mapGenerator.GenerateMap();
             }

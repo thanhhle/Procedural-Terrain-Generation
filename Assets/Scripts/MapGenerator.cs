@@ -1,12 +1,12 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
-    public bool AutoUpdate;
+    public bool autoUpdate;
 
-    public enum MapType {NoiseMap, ColorMap};
+    public enum MapType { NoiseMap, ColorMap, Mesh };
     public MapType mapType;
 
     public int width;
@@ -15,7 +15,7 @@ public class MapGenerator : MonoBehaviour
     public int seed;
     public float scale;
 
-    public int octaves;  
+    public int octaves;
     [Range(0, 1)]
     public float persistence;
     public float lacunarity;
@@ -54,11 +54,15 @@ public class MapGenerator : MonoBehaviour
         else if (mapType == MapType.ColorMap)
         {
             mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromColorMap(colorMap, width, height));
-        }     
+        }
+        else if (mapType == MapType.Mesh)
+        {
+            mapRenderer.RenderMesh(MeshGenerator.GenerateTerrainMesh(noiseMap), TextureGenerator.GenerateTextureFromColorMap(colorMap, width, height));
+        }
     }
 
 
-    private void OnValidate() 
+    private void OnValidate()
     {
         width = width < 1 ? 1 : width;
         height = height < 1 ? 1 : height;
@@ -66,7 +70,7 @@ public class MapGenerator : MonoBehaviour
         lacunarity = lacunarity < 1 ? 1 : lacunarity;
         octaves = octaves < 0 ? 0 : octaves;
     }
-   
+
 }
 
 

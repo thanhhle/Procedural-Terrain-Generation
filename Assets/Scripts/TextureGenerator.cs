@@ -15,7 +15,7 @@ public static class TextureGenerator
     }
 
 
-    public static Texture2D GenerateTextureFromNoiseMap(float[,] noiseMap)
+    public static Texture2D GenerateTextureFromNoiseMap(float[,] noiseMap) 
     {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);

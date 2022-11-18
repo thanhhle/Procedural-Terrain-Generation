@@ -22,6 +22,9 @@ public static class NoiseMapGenerator
         float maxNoiseValue = float.MinValue;
         float minNoiseValue = float.MaxValue;
 
+        float halfWidth = width / 2f;
+        float halfHeight = height / 2f;
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -32,8 +35,8 @@ public static class NoiseMapGenerator
 
                 for (int i = 0; i < octaves; i++)
                 {
-                    float sampleX = (x - width / 2f) / scale * frequency + octaveOffsets[i].x;
-                    float sampleY = (y - height / 2f) / scale * frequency + octaveOffsets[i].y;
+                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffsets[i].x;
+                    float sampleY = (y - halfHeight) / scale * frequency + octaveOffsets[i].y;
 
                     float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
                     noiseValue += perlinValue * amplitude;
