@@ -19,5 +19,6 @@ public class MapRenderer : MonoBehaviour
     {
         meshFilter.sharedMesh = meshData.CreateMesh();
         meshRenderer.sharedMaterial.mainTexture = texture;
+        meshRenderer.transform.localScale = new Vector3(10, 10, 10);
     }
 }

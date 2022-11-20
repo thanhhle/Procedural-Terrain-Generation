@@ -22,6 +22,9 @@ public class MapGenerator : MonoBehaviour
 
     public Vector2 offset;
 
+    public float meshHeightMultiplier;
+    public AnimationCurve meshHeightCurve;
+
     public Landform[] landforms;
 
 
@@ -57,7 +60,7 @@ public class MapGenerator : MonoBehaviour
         }
         else if (mapType == MapType.Mesh)
         {
-            mapRenderer.RenderMesh(MeshGenerator.GenerateTerrainMesh(noiseMap), TextureGenerator.GenerateTextureFromColorMap(colorMap, width, height));
+            mapRenderer.RenderMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve), TextureGenerator.GenerateTextureFromColorMap(colorMap, width, height));
         }
     }
 
@@ -70,7 +73,6 @@ public class MapGenerator : MonoBehaviour
         lacunarity = lacunarity < 1 ? 1 : lacunarity;
         octaves = octaves < 0 ? 0 : octaves;
     }
-
 }
 
 
