@@ -320,4 +320,5 @@
 "Assets/Scripts/MapRenderer.cs"
 "Assets/Scripts/MeshGenerator.cs"
 "Assets/Scripts/NoiseMapGenerator.cs"
+"Assets/Scripts/TerrainGenerator.cs"
 "Assets/Scripts/TextureGenerator.cs"
