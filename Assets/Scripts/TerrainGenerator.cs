@@ -95,7 +95,6 @@ public class TerrainGenerator : MonoBehaviour
             meshRenderer.material = material;
 
             meshObject.transform.position = positionV3;
-            meshObject.transform.localScale = Vector3.one * size / 10f;
             meshObject.transform.parent = parent;
 
             SetVisible(false);
