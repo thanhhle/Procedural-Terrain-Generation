@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    public const float maxViewDistance = 450;
+    public LevelOfDetailData[] detailLevels;
+    public static float maxViewDistance;
+
     public Transform character;
     public Material mapMaterial;
 
@@ -20,6 +22,7 @@ public class TerrainGenerator : MonoBehaviour
     void Start()
     {
         mapGenerator = FindObjectOfType<MapGenerator>();
+        maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
         chunkSize = MapGenerator.mapChunkSize - 1;
         visibleChunks = Mathf.RoundToInt(maxViewDistance / chunkSize);
     }
@@ -66,7 +69,7 @@ public class TerrainGenerator : MonoBehaviour
                 }
                 else
                 {
-                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, chunkSize, transform, mapMaterial);
+                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, chunkSize, detailLevels, transform, mapMaterial);
                     terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
                 }
             }
@@ -83,39 +86,84 @@ public class TerrainGenerator : MonoBehaviour
         MeshRenderer meshRenderer;
         MeshFilter meshFilter;
 
-        public TerrainChunk(Vector2 coord, int size, Transform parent, Material material)
+        LevelOfDetailData[] detailLevels;
+        LevelOfDetailMesh[] levelOfDetailMeshes;
+
+        MapData mapData;
+        bool mapDataReceived;
+        int previousLevelOfDetailIndex = -1;
+
+        public TerrainChunk(Vector2 coord, int size, LevelOfDetailData[] detailLevels, Transform parent, Material material)
         {
-            position = coord * size;
-            bounds = new Bounds(position, Vector2.one * size);
+            this.position = coord * size;
+            this.bounds = new Bounds(position, Vector2.one * size);
             Vector3 positionV3 = new Vector3(position.x, 0, position.y);
 
-            meshObject = new GameObject("Terrain Chunk");
-            meshRenderer = meshObject.AddComponent<MeshRenderer>();
-            meshFilter = meshObject.AddComponent<MeshFilter>();
-            meshRenderer.material = material;
+            this.detailLevels = detailLevels;
 
-            meshObject.transform.position = positionV3;
-            meshObject.transform.parent = parent;
+            this.meshObject = new GameObject("Terrain Chunk");
+            this.meshRenderer = meshObject.AddComponent<MeshRenderer>();
+            this.meshFilter = meshObject.AddComponent<MeshFilter>();
+            this.meshRenderer.material = material;
+
+            this.meshObject.transform.position = positionV3;
+            this.meshObject.transform.parent = parent;
 
             SetVisible(false);
+
+            this.levelOfDetailMeshes = new LevelOfDetailMesh[detailLevels.Length];
+            for (int i = 0; i < detailLevels.Length; i++)
+            {
+                this.levelOfDetailMeshes[i] = new LevelOfDetailMesh(detailLevels[i].levelOfDetail);
+            }
 
             mapGenerator.RequestMapData(OnMapDataReceived);
         }
 
         private void OnMapDataReceived(MapData mapData)
         {
-            mapGenerator.RequestMeshData(mapData, OnMeshDataReceived);
-        }
-
-        private void OnMeshDataReceived(MeshData meshData)
-        {
-            meshFilter.mesh = meshData.CreateMesh();
+            this.mapData = mapData;
+            this.mapDataReceived = true;
         }
 
         public void Update()
         {
-            float characterDistancefromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(characterPosition));
-            bool visible = characterDistancefromNearestEdge <= maxViewDistance;
+            if (this.mapDataReceived)
+            {
+                float characterDistancefromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(characterPosition));
+                bool visible = characterDistancefromNearestEdge <= maxViewDistance;
+
+                if (visible)
+                {
+                    int levelOfDetailIndex = 0;
+                    for (int i = 0; i < detailLevels.Length - 1; i++)
+                    {
+                        if (characterDistancefromNearestEdge > detailLevels[i].visibleDistanceThreshold)
+                        {
+                            levelOfDetailIndex++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if (levelOfDetailIndex != this.previousLevelOfDetailIndex)
+                    {
+                        LevelOfDetailMesh levelOfDetailMesh = this.levelOfDetailMeshes[levelOfDetailIndex];
+                        if (levelOfDetailMesh.hasMesh)
+                        {
+                            this.previousLevelOfDetailIndex = levelOfDetailIndex;
+                            this.meshFilter.mesh = levelOfDetailMesh.mesh;
+                        }
+                        else if (!levelOfDetailMesh.hasRequestedMesh)
+                        {
+                            levelOfDetailMesh.RequestMesh(mapData);
+                        }
+                    }
+                }
+            }
+
             SetVisible(visible);
         }
 
@@ -128,5 +176,42 @@ public class TerrainGenerator : MonoBehaviour
         {
             return meshObject.activeSelf;
         }
+    }
+
+
+    class LevelOfDetailMesh
+    {
+        public Mesh mesh;
+        public bool hasRequestedMesh;
+        public bool hasMesh;
+        private int levelOfDetail;
+
+        public LevelOfDetailMesh(int levelOfDetail)
+        {
+            this.levelOfDetail = levelOfDetail;
+        }
+
+        private void OnMeshDataReceived(MeshData meshData)
+        {
+            mesh = meshData.CreateMesh();
+            this.hasMesh = true;
+        }
+
+        public void RequestMesh(MapData mapData)
+        {
+            this.hasRequestedMesh = true;
+            mapGenerator.RequestMeshData(mapData, this.levelOfDetail, OnMeshDataReceived);
+
+        }
+    }
+
+
+    [System.Serializable]
+    public struct LevelOfDetailData
+    {
+        public int levelOfDetail;
+        public float visibleDistanceThreshold;
+
+
     }
 }
