@@ -10,10 +10,12 @@ public class MapGenerator : MonoBehaviour
 
     public bool autoUpdate;
 
-    public enum MapType { NoiseMap, ColorMap, Mesh };
+    public enum MapType { NoiseMap, FalloffMap, ColorMap, Mesh };
     public MapType mapType;
 
     public NoiseMapGenerator.NormalizedMode normalizedMode;
+
+    public bool enableFalloffMap;
 
     public int seed;
     public float scale;
@@ -34,8 +36,15 @@ public class MapGenerator : MonoBehaviour
 
     public Landform[] landforms;
 
+    float[,] falloffMap;
+
     Queue<ThreadData<MapData>> mapDataThreadDataQueue = new Queue<ThreadData<MapData>>();
     Queue<ThreadData<MeshData>> meshDataThreadDataQueue = new Queue<ThreadData<MeshData>>();
+
+    private void Awake() 
+    {
+        falloffMap = FalloffMapGenerator.GenerateFalloffMap(mapChunkSize);
+    }
 
     public void RenderMap()
     {
@@ -52,6 +61,10 @@ public class MapGenerator : MonoBehaviour
         else if (mapType == MapType.Mesh)
         {
             mapRenderer.RenderMesh(MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, meshHeightMultiplier, meshHeightCurve, editorPreviewLevelOfDetail), TextureGenerator.GenerateTextureFromColorMap(mapData.colorMap, mapChunkSize, mapChunkSize));
+        }
+        else if (mapType == MapType.FalloffMap)
+        {
+            mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromNoiseMap(FalloffMapGenerator.GenerateFalloffMap(mapChunkSize)));
         }
     }
 
@@ -128,6 +141,11 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < mapChunkSize; y++)
             {
+                if (enableFalloffMap)           
+                {
+                    noiseMap[x, y] = Mathf.Clamp01(noiseMap[x, y] - falloffMap[x, y]);
+                }
+
                 float noiseValue = noiseMap[x, y];
                 for (int i = 0; i < landforms.Length; i++)
                 {
@@ -152,6 +170,8 @@ public class MapGenerator : MonoBehaviour
         scale = scale <= 0 ? 0.1f : scale;
         lacunarity = lacunarity < 1 ? 1 : lacunarity;
         octaves = octaves < 0 ? 0 : octaves;
+
+        falloffMap = FalloffMapGenerator.GenerateFalloffMap(mapChunkSize);
     }
 
 

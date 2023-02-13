@@ -15,7 +15,7 @@ public static class NoiseMapGenerator
 
         float amplitude = 1;
         float frequency = 1;
-        float maxPossibleHeight = 0;
+        float maxGlobalNoiseValue = 0;
 
         for (int i = 0; i < octaves; i++)
         {
@@ -23,7 +23,7 @@ public static class NoiseMapGenerator
             float offsetY = pseudoRandomGenerator.Next(-100000, 100000) - offset.y;
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
 
-            maxPossibleHeight += amplitude;
+            maxGlobalNoiseValue += amplitude;
             amplitude *= persistence;
         }
 
@@ -73,7 +73,7 @@ public static class NoiseMapGenerator
                 }
                 else
                 {
-                    float normalizedHeight = (noiseMap[x, y] + 1) / maxPossibleHeight;
+                    float normalizedHeight = (noiseMap[x, y] + 1) / maxGlobalNoiseValue;
                     noiseMap[x, y] = Mathf.Clamp(normalizedHeight, 0, int.MaxValue);
                 }
             }
