@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    const float scale = 5f;
+    const float scale = 2f;
 
     const float characterMoveThresholdForChunkUpdate = 25f;
     const float sqrCharacterMoveThresholdForChunkUpdate = characterMoveThresholdForChunkUpdate * characterMoveThresholdForChunkUpdate;
@@ -96,9 +96,11 @@ public class TerrainGenerator : MonoBehaviour
 
         MeshRenderer meshRenderer;
         MeshFilter meshFilter;
+        MeshCollider meshCollider;
 
         LevelOfDetailData[] detailLevels;
         LevelOfDetailMesh[] levelOfDetailMeshes;
+        LevelOfDetailMesh collisionLevelOfDetailMesh;
 
         MapData mapData;
         bool mapDataReceived;
@@ -115,6 +117,7 @@ public class TerrainGenerator : MonoBehaviour
             this.meshObject = new GameObject("Terrain Chunk");
             this.meshRenderer = meshObject.AddComponent<MeshRenderer>();
             this.meshFilter = meshObject.AddComponent<MeshFilter>();
+            this.meshCollider = meshObject.AddComponent<MeshCollider>();
             this.meshRenderer.material = material;
 
             this.meshObject.transform.position = positionV3 * scale;
@@ -127,6 +130,10 @@ public class TerrainGenerator : MonoBehaviour
             for (int i = 0; i < detailLevels.Length; i++)
             {
                 this.levelOfDetailMeshes[i] = new LevelOfDetailMesh(detailLevels[i].levelOfDetail, UpdateTerrainChunk);
+                if (detailLevels[i].enableCollision)
+                {
+                    this.collisionLevelOfDetailMesh = levelOfDetailMeshes[i];
+                }
             }
 
             mapGenerator.RequestMapData(position, OnMapDataReceived);
@@ -176,6 +183,18 @@ public class TerrainGenerator : MonoBehaviour
                         else if (!levelOfDetailMesh.hasRequestedMesh)
                         {
                             levelOfDetailMesh.RequestMesh(mapData);
+                        }
+                    }
+
+                    if (levelOfDetailIndex == 0)
+                    {
+                        if (collisionLevelOfDetailMesh.hasMesh)
+                        {
+                            meshCollider.sharedMesh = collisionLevelOfDetailMesh.mesh;
+                        }
+                        else if (!collisionLevelOfDetailMesh.hasRequestedMesh)
+                        {
+                            collisionLevelOfDetailMesh.RequestMesh(mapData);
                         }
                     }
 
@@ -233,5 +252,6 @@ public class TerrainGenerator : MonoBehaviour
     {
         public int levelOfDetail;
         public float visibleDistanceThreshold;
+        public bool enableCollision;
     }
 }
