@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    const float scale = 5f;
+
     const float characterMoveThresholdForChunkUpdate = 25f;
     const float sqrCharacterMoveThresholdForChunkUpdate = characterMoveThresholdForChunkUpdate * characterMoveThresholdForChunkUpdate;
 
@@ -37,7 +39,7 @@ public class TerrainGenerator : MonoBehaviour
 
     void Update()
     {
-        characterPosition = new Vector2(character.position.x, character.position.z);
+        characterPosition = new Vector2(character.position.x, character.position.z) / scale;
 
         if ((lastCharacterPosition - characterPosition).sqrMagnitude > sqrCharacterMoveThresholdForChunkUpdate)
         {
@@ -115,8 +117,9 @@ public class TerrainGenerator : MonoBehaviour
             this.meshFilter = meshObject.AddComponent<MeshFilter>();
             this.meshRenderer.material = material;
 
-            this.meshObject.transform.position = positionV3;
+            this.meshObject.transform.position = positionV3 * scale;
             this.meshObject.transform.parent = parent;
+            this.meshObject.transform.localScale = Vector3.one * scale;
 
             SetVisible(false);
 

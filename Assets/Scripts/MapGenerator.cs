@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
-    public const int mapChunkSize = 241;
+    public const int mapChunkSize = 239;
 
     public bool autoUpdate;
 
@@ -134,7 +134,7 @@ public class MapGenerator : MonoBehaviour
 
     MapData GenerateMapData(Vector2 center)
     {
-        float[,] noiseMap = NoiseMapGenerator.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, scale, octaves, persistence, lacunarity, center + offset, normalizedMode);
+        float[,] noiseMap = NoiseMapGenerator.GenerateNoiseMap(mapChunkSize + 2, mapChunkSize + 2, seed, scale, octaves, persistence, lacunarity, center + offset, normalizedMode);
 
         Color[] colorMap = new Color[mapChunkSize * mapChunkSize];
         for (int x = 0; x < mapChunkSize; x++)
