@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
-    const float scale = 2f;
-
     const float characterMoveThresholdForChunkUpdate = 25f;
     const float sqrCharacterMoveThresholdForChunkUpdate = characterMoveThresholdForChunkUpdate * characterMoveThresholdForChunkUpdate;
 
@@ -30,7 +28,7 @@ public class TerrainGenerator : MonoBehaviour
     {
         mapGenerator = FindObjectOfType<MapGenerator>();
         maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
-        chunkSize = MapGenerator.mapChunkSize - 1;
+        chunkSize = mapGenerator.mapChunkSize - 1;
         visibleChunks = Mathf.RoundToInt(maxViewDistance / chunkSize);
 
         UpdateVisibleChunks();
@@ -39,14 +37,13 @@ public class TerrainGenerator : MonoBehaviour
 
     void Update()
     {
-        characterPosition = new Vector2(character.position.x, character.position.z) / scale;
+        characterPosition = new Vector2(character.position.x, character.position.z) / mapGenerator.terrainData.uniformScale;
 
         if ((lastCharacterPosition - characterPosition).sqrMagnitude > sqrCharacterMoveThresholdForChunkUpdate)
         {
             lastCharacterPosition = characterPosition;
             UpdateVisibleChunks();
         }
-
     }
 
 
@@ -120,9 +117,9 @@ public class TerrainGenerator : MonoBehaviour
             this.meshCollider = meshObject.AddComponent<MeshCollider>();
             this.meshRenderer.material = material;
 
-            this.meshObject.transform.position = positionV3 * scale;
+            this.meshObject.transform.position = positionV3 * mapGenerator.terrainData.uniformScale;
             this.meshObject.transform.parent = parent;
-            this.meshObject.transform.localScale = Vector3.one * scale;
+            this.meshObject.transform.localScale = Vector3.one * mapGenerator.terrainData.uniformScale;
 
             SetVisible(false);
 
@@ -143,9 +140,6 @@ public class TerrainGenerator : MonoBehaviour
         {
             this.mapData = mapData;
             this.mapDataReceived = true;
-
-            Texture2D texture = TextureGenerator.GenerateTextureFromColorMap(mapData.colorMap, MapGenerator.mapChunkSize, MapGenerator.mapChunkSize);
-            this.meshRenderer.material.mainTexture = texture;
 
             UpdateTerrainChunk();
         }
