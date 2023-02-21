@@ -14,6 +14,7 @@ public class AutoUpdateDataEditor : Editor
         if (GUILayout.Button("Update"))
         {
             data.NotifyUpdates();
+            EditorUtility.SetDirty(target);
         }
     }
 }

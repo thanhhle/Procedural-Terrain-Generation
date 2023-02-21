@@ -13,6 +13,9 @@ public class MapGenerator : MonoBehaviour
 
     public NoiseData noiseData;
     public TerrainData terrainData;
+    public TextureData textureData;
+
+    public Material terrainMaterial;
 
     [Range(0, 6)]
     public int editorPreviewLevelOfDetail;
@@ -24,11 +27,6 @@ public class MapGenerator : MonoBehaviour
     Queue<ThreadData<MapData>> mapDataThreadDataQueue = new Queue<ThreadData<MapData>>();
     Queue<ThreadData<MeshData>> meshDataThreadDataQueue = new Queue<ThreadData<MeshData>>();
 
-    private void Awake() 
-    {
-        falloffMap = FalloffMapGenerator.GenerateFalloffMap(mapChunkSize);
-    }
-
 
     private void OnValuesUpdated()
     {
@@ -36,6 +34,12 @@ public class MapGenerator : MonoBehaviour
         {
             RenderMap();
         }
+    }
+
+
+    private void OnTextureValuesUpdated()
+    {
+        textureData.ApplyToMaterial(terrainMaterial);
     }
 
 
@@ -137,7 +141,7 @@ public class MapGenerator : MonoBehaviour
     }
 
 
-    MapData GenerateMapData(Vector2 center)
+    private MapData GenerateMapData(Vector2 center)
     {
         float[,] noiseMap = NoiseMapGenerator.GenerateNoiseMap(mapChunkSize + 2, mapChunkSize + 2, noiseData.seed, noiseData.scale, noiseData.octaves, noiseData.persistence, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizedMode);
         
@@ -160,6 +164,8 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
+        textureData.UpdateMeshHeights(terrainMaterial, terrainData.minHeight, terrainData.maxHeight);
+
         return new MapData(noiseMap);
     }
 
@@ -178,7 +184,11 @@ public class MapGenerator : MonoBehaviour
             terrainData.OnValuesUpdated += OnValuesUpdated;
         }
 
-        falloffMap = FalloffMapGenerator.GenerateFalloffMap(mapChunkSize);
+        if (textureData != null)
+        {
+            textureData.OnValuesUpdated -= OnTextureValuesUpdated;
+            textureData.OnValuesUpdated += OnTextureValuesUpdated;
+        }
     }
 
 

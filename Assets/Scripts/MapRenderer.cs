@@ -5,7 +5,6 @@ using UnityEngine;
 public class MapRenderer : MonoBehaviour
 {
     public Renderer renderer;
-
     public MeshFilter meshFilter;
     public MeshRenderer meshRenderer;
 
