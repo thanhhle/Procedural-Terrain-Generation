@@ -17,15 +17,26 @@ public class MapGenerator : MonoBehaviour
 
     public Material terrainMaterial;
 
-    [Range(0, 6)]
-    public int editorPreviewLevelOfDetail;
+    [Range(0, MeshGenerator.numSupportedChunkSizes - 1)]
+    public int chunkSizeIndex;
 
-    public Landform[] landforms;
+    [Range(0, MeshGenerator.numSupportedFlatShaddedChunkSizes - 1)]
+    public int flatShaddedChunkSizeIndex;
+
+    [Range(0, MeshGenerator.numSupportedLODs - 1)]
+    public int editorPreviewLevelOfDetail;
 
     float[,] falloffMap;
 
     Queue<ThreadData<MapData>> mapDataThreadDataQueue = new Queue<ThreadData<MapData>>();
     Queue<ThreadData<MeshData>> meshDataThreadDataQueue = new Queue<ThreadData<MeshData>>();
+
+
+    private void Awake() 
+    {
+        textureData.ApplyToMaterial(terrainMaterial);
+        textureData.UpdateMeshHeights(terrainMaterial, terrainData.minHeight, terrainData.maxHeight);
+    }
 
 
     private void OnValuesUpdated()
@@ -49,17 +60,19 @@ public class MapGenerator : MonoBehaviour
         {
             if (terrainData.enableFlatShadding)
             {
-                return 95;
+                return MeshGenerator.supportedFlatShaddedChunkSizes[flatShaddedChunkSizeIndex] - 1;
             }
             else
             {
-                return 239;
+                return MeshGenerator.supportedChunkSizes[chunkSizeIndex] - 1;
             }
         }
     }
 
     public void RenderMap()
     {
+        textureData.UpdateMeshHeights(terrainMaterial, terrainData.minHeight, terrainData.maxHeight);
+
         MapData mapData = GenerateMapData(Vector2.zero);
         MapRenderer mapRenderer = FindObjectOfType<MapRenderer>();
         if (mapType == MapType.NoiseMap)
@@ -164,8 +177,6 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        textureData.UpdateMeshHeights(terrainMaterial, terrainData.minHeight, terrainData.maxHeight);
-
         return new MapData(noiseMap);
     }
 
@@ -203,15 +214,6 @@ public class MapGenerator : MonoBehaviour
             this.parameter = parameter;
         }
     }
-}
-
-
-[System.Serializable]
-public struct Landform
-{
-    public string name;
-    public float threshold;
-    public Color color;
 }
 
 

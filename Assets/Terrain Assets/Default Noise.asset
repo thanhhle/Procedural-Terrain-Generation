@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Default Noise
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  normalizedMode: 0
+  normalizedMode: 1
   seed: 0
   scale: 50
-  octaves: 5
+  octaves: 15
   persistence: 0.5
   lacunarity: 2
   offset: {x: 0, y: 0}

@@ -17,6 +17,8 @@ public class NoiseData : AutoUpdateData
 
     public Vector2 offset;
 
+    #if UNITY_EDITOR
+
     protected override void OnValidate()
     {
         scale = scale <= 0 ? 0.1f : scale;
@@ -25,4 +27,6 @@ public class NoiseData : AutoUpdateData
         
         base.OnValidate();
     }
+
+    #endif
 }

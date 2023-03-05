@@ -6,8 +6,10 @@ public class TerrainGenerator : MonoBehaviour
 {
     const float characterMoveThresholdForChunkUpdate = 25f;
     const float sqrCharacterMoveThresholdForChunkUpdate = characterMoveThresholdForChunkUpdate * characterMoveThresholdForChunkUpdate;
+    const float colliderGenerationDistanceThreshold = 5;
 
-    public LevelOfDetailData[] detailLevels;
+    public int colliderLODIndex;
+    public LODData[] detailLevels;
     public static float maxViewDistance;
 
     public Transform character;
@@ -21,12 +23,13 @@ public class TerrainGenerator : MonoBehaviour
     private int visibleChunks;
 
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
-    static List<TerrainChunk> visibleChunksLastUpdate = new List<TerrainChunk>();
+    static List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
 
     void Start()
     {
         mapGenerator = FindObjectOfType<MapGenerator>();
+
         maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
         chunkSize = mapGenerator.mapChunkSize - 1;
         visibleChunks = Mathf.RoundToInt(maxViewDistance / chunkSize);
@@ -39,6 +42,14 @@ public class TerrainGenerator : MonoBehaviour
     {
         characterPosition = new Vector2(character.position.x, character.position.z) / mapGenerator.terrainData.uniformScale;
 
+        if (characterPosition != lastCharacterPosition)
+        {
+            foreach(TerrainChunk chunk in visibleTerrainChunks)
+            {
+                chunk.UpdateCollisionMesh();
+            }
+        }
+
         if ((lastCharacterPosition - characterPosition).sqrMagnitude > sqrCharacterMoveThresholdForChunkUpdate)
         {
             lastCharacterPosition = characterPosition;
@@ -47,23 +58,17 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    void OnDestroy()
-    {
-        visibleChunksLastUpdate.Clear();
-    }
-
-
     void UpdateVisibleChunks()
     {
         int currentChunkCoordX = Mathf.RoundToInt(characterPosition.x / chunkSize);
         int currentChunkCoordY = Mathf.RoundToInt(characterPosition.y / chunkSize);
 
-        for (int i = 0; i < visibleChunksLastUpdate.Count; i++)
+        for (int i = 0; i < visibleTerrainChunks.Count; i++)
         {
-            visibleChunksLastUpdate[i].SetVisible(false);
+            visibleTerrainChunks[i].SetVisible(false);
         }
 
-        visibleChunksLastUpdate.Clear();
+        visibleTerrainChunks.Clear();
 
         for (int x = -visibleChunks; x <= visibleChunks; x++)
         {
@@ -77,7 +82,7 @@ public class TerrainGenerator : MonoBehaviour
                 }
                 else
                 {
-                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, chunkSize, detailLevels, transform, mapMaterial);
+                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, chunkSize, detailLevels, colliderLODIndex, transform, mapMaterial);
                     terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
                 }
             }
@@ -95,21 +100,24 @@ public class TerrainGenerator : MonoBehaviour
         MeshFilter meshFilter;
         MeshCollider meshCollider;
 
-        LevelOfDetailData[] detailLevels;
-        LevelOfDetailMesh[] levelOfDetailMeshes;
-        LevelOfDetailMesh collisionLevelOfDetailMesh;
+        LODData[] detailLevels;
+        LODMesh[] lodMeshes;
+        int colliderLODIndex;
 
         MapData mapData;
         bool mapDataReceived;
-        int previousLevelOfDetailIndex = -1;
+        int previousLODIndex = -1;
+        bool hasSetCollider;
 
-        public TerrainChunk(Vector2 coord, int size, LevelOfDetailData[] detailLevels, Transform parent, Material material)
+
+        public TerrainChunk(Vector2 coord, int size, LODData[] detailLevels, int colliderLODIndex, Transform parent, Material material)
         {
             this.position = coord * size;
             this.bounds = new Bounds(position, Vector2.one * size);
             Vector3 positionV3 = new Vector3(position.x, 0, position.y);
 
             this.detailLevels = detailLevels;
+            this.colliderLODIndex = colliderLODIndex;
 
             this.meshObject = new GameObject("Terrain Chunk");
             this.meshRenderer = meshObject.AddComponent<MeshRenderer>();
@@ -123,13 +131,15 @@ public class TerrainGenerator : MonoBehaviour
 
             SetVisible(false);
 
-            this.levelOfDetailMeshes = new LevelOfDetailMesh[detailLevels.Length];
+            this.lodMeshes = new LODMesh[detailLevels.Length];
             for (int i = 0; i < detailLevels.Length; i++)
             {
-                this.levelOfDetailMeshes[i] = new LevelOfDetailMesh(detailLevels[i].levelOfDetail, UpdateTerrainChunk);
-                if (detailLevels[i].enableCollision)
+                this.lodMeshes[i] = new LODMesh(detailLevels[i].lod);
+                this.lodMeshes[i].updateCallback += UpdateTerrainChunk;
+
+                if (i == colliderLODIndex)
                 {
-                    this.collisionLevelOfDetailMesh = levelOfDetailMeshes[i];
+                    this.lodMeshes[i].updateCallback += UpdateCollisionMesh;
                 }
             }
 
@@ -153,12 +163,12 @@ public class TerrainGenerator : MonoBehaviour
 
                 if (visible)
                 {
-                    int levelOfDetailIndex = 0;
+                    int lodIndex = 0;
                     for (int i = 0; i < detailLevels.Length - 1; i++)
                     {
                         if (characterDistancefromNearestEdge > detailLevels[i].visibleDistanceThreshold)
                         {
-                            levelOfDetailIndex++;
+                            lodIndex = i + 1;
                         }
                         else
                         {
@@ -166,37 +176,50 @@ public class TerrainGenerator : MonoBehaviour
                         }
                     }
 
-                    if (levelOfDetailIndex != this.previousLevelOfDetailIndex)
+                    if (lodIndex != this.previousLODIndex)
                     {
-                        LevelOfDetailMesh levelOfDetailMesh = this.levelOfDetailMeshes[levelOfDetailIndex];
-                        if (levelOfDetailMesh.hasMesh)
+                        LODMesh lodMesh = this.lodMeshes[lodIndex];
+                        if (lodMesh.hasMesh)
                         {
-                            this.previousLevelOfDetailIndex = levelOfDetailIndex;
-                            this.meshFilter.mesh = levelOfDetailMesh.mesh;
+                            this.previousLODIndex = lodIndex;
+                            this.meshFilter.mesh = lodMesh.mesh;
                         }
-                        else if (!levelOfDetailMesh.hasRequestedMesh)
+                        else if (!lodMesh.hasRequestedMesh)
                         {
-                            levelOfDetailMesh.RequestMesh(mapData);
+                            lodMesh.RequestMesh(mapData);
                         }
                     }
 
-                    if (levelOfDetailIndex == 0)
-                    {
-                        if (collisionLevelOfDetailMesh.hasMesh)
-                        {
-                            meshCollider.sharedMesh = collisionLevelOfDetailMesh.mesh;
-                        }
-                        else if (!collisionLevelOfDetailMesh.hasRequestedMesh)
-                        {
-                            collisionLevelOfDetailMesh.RequestMesh(mapData);
-                        }
-                    }
-
-                    visibleChunksLastUpdate.Add(this);     
+                    visibleTerrainChunks.Add(this);     
                 }
             
                 SetVisible(visible);
             }
+        }
+
+        public void UpdateCollisionMesh()
+        {
+            if (!hasSetCollider)
+            {
+                float sqrDistanceFromCharacterToEdge = bounds.SqrDistance(characterPosition);
+
+                if (sqrDistanceFromCharacterToEdge < detailLevels[colliderLODIndex].sqrVisibleDistanceThreshold)
+                {
+                    if (!lodMeshes[colliderLODIndex].hasRequestedMesh)
+                    {
+                        lodMeshes[colliderLODIndex].RequestMesh(mapData);
+                    }
+                }
+
+                if (sqrDistanceFromCharacterToEdge < colliderGenerationDistanceThreshold * colliderGenerationDistanceThreshold)
+                {
+                    if (lodMeshes[colliderLODIndex].hasMesh)
+                    {
+                        meshCollider.sharedMesh = lodMeshes[colliderLODIndex].mesh;
+                        hasSetCollider = true;
+                    }
+                }
+            }    
         }
 
         public void SetVisible(bool visible)
@@ -211,18 +234,17 @@ public class TerrainGenerator : MonoBehaviour
     }
 
 
-    class LevelOfDetailMesh
+    class LODMesh
     {
         public Mesh mesh;
         public bool hasRequestedMesh;
         public bool hasMesh;
-        private int levelOfDetail;
-        System.Action updateCallback;
+        private int lod;
+        public event System.Action updateCallback;
 
-        public LevelOfDetailMesh(int levelOfDetail, System.Action updateCallback)
+        public LODMesh(int lod)
         {
-            this.levelOfDetail = levelOfDetail;
-            this.updateCallback = updateCallback;
+            this.lod = lod;
         }
 
         private void OnMeshDataReceived(MeshData meshData)
@@ -235,17 +257,25 @@ public class TerrainGenerator : MonoBehaviour
         public void RequestMesh(MapData mapData)
         {
             this.hasRequestedMesh = true;
-            mapGenerator.RequestMeshData(mapData, this.levelOfDetail, OnMeshDataReceived);
+            mapGenerator.RequestMeshData(mapData, this.lod, OnMeshDataReceived);
 
         }
     }
 
 
     [System.Serializable]
-    public struct LevelOfDetailData
+    public struct LODData
     {
-        public int levelOfDetail;
+        [Range(0, MeshGenerator.numSupportedLODs - 1)]
+        public int lod;
         public float visibleDistanceThreshold;
-        public bool enableCollision;
+
+        public float sqrVisibleDistanceThreshold
+        {
+            get
+            {
+                return visibleDistanceThreshold * visibleDistanceThreshold;
+            }
+        }
     }
 }
