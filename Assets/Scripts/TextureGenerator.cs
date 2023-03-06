@@ -15,17 +15,17 @@ public static class TextureGenerator
     }
 
 
-    public static Texture2D GenerateTextureFromNoiseMap(float[,] noiseMap) 
+    public static Texture2D GenerateTextureFromHeightMap(float[,] heightMap) 
     {
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
+        int width = heightMap.GetLength(0);
+        int height = heightMap.GetLength(1);
 
         Color[] colorMap = new Color[width * height];
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                colorMap[y * width + x] = Color.Lerp(Color.black, Color.white, noiseMap[x, y]);
+                colorMap[y * width + x] = Color.Lerp(Color.black, Color.white, heightMap[x, y]);
             }
         }
 

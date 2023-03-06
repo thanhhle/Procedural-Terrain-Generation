@@ -8,34 +8,28 @@ public class MapGenerator : MonoBehaviour
 {
     public bool autoUpdate;
 
-    public enum MapType { NoiseMap, FalloffMap, Mesh };
+    public enum MapType { HeightMap, FalloffMap, Mesh };
     public MapType mapType;
 
-    public NoiseData noiseData;
-    public TerrainData terrainData;
+    public HeightMapSettings heightMapSettings;
+    public MeshSettings meshSettings;
     public TextureData textureData;
 
     public Material terrainMaterial;
 
-    [Range(0, MeshGenerator.numSupportedChunkSizes - 1)]
-    public int chunkSizeIndex;
-
-    [Range(0, MeshGenerator.numSupportedFlatShaddedChunkSizes - 1)]
-    public int flatShaddedChunkSizeIndex;
-
-    [Range(0, MeshGenerator.numSupportedLODs - 1)]
+    [Range(0, MeshSettings.numSupportedLODs - 1)]
     public int editorPreviewLevelOfDetail;
 
     float[,] falloffMap;
 
-    Queue<ThreadData<MapData>> mapDataThreadDataQueue = new Queue<ThreadData<MapData>>();
+    Queue<ThreadData<HeightMap>> heightMapThreadDataQueue = new Queue<ThreadData<HeightMap>>();
     Queue<ThreadData<MeshData>> meshDataThreadDataQueue = new Queue<ThreadData<MeshData>>();
 
 
-    private void Awake() 
+    void Start() 
     {
         textureData.ApplyToMaterial(terrainMaterial);
-        textureData.UpdateMeshHeights(terrainMaterial, terrainData.minHeight, terrainData.maxHeight);
+        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
     }
 
 
@@ -53,78 +47,62 @@ public class MapGenerator : MonoBehaviour
         textureData.ApplyToMaterial(terrainMaterial);
     }
 
-
-    public int mapChunkSize
-    {
-        get
-        {
-            if (terrainData.enableFlatShadding)
-            {
-                return MeshGenerator.supportedFlatShaddedChunkSizes[flatShaddedChunkSizeIndex] - 1;
-            }
-            else
-            {
-                return MeshGenerator.supportedChunkSizes[chunkSizeIndex] - 1;
-            }
-        }
-    }
-
     public void RenderMap()
     {
-        textureData.UpdateMeshHeights(terrainMaterial, terrainData.minHeight, terrainData.maxHeight);
+        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
 
-        MapData mapData = GenerateMapData(Vector2.zero);
+        HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVerticesPerLine, meshSettings.numVerticesPerLine, heightMapSettings, Vector2.zero);
         MapRenderer mapRenderer = FindObjectOfType<MapRenderer>();
-        if (mapType == MapType.NoiseMap)
+        if (mapType == MapType.HeightMap)
         {
-            mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromNoiseMap(mapData.noiseMap));
+            mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromHeightMap(heightMap.values));
         }
         else if (mapType == MapType.Mesh)
         {
-            mapRenderer.RenderMesh(MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve, editorPreviewLevelOfDetail, terrainData.enableFlatShadding));
+            mapRenderer.RenderMesh(MeshGenerator.GenerateTerrainMesh(heightMap.values, editorPreviewLevelOfDetail, meshSettings));
         }
         else if (mapType == MapType.FalloffMap)
         {
-            mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromNoiseMap(FalloffMapGenerator.GenerateFalloffMap(mapChunkSize)));
+            mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromHeightMap(FalloffMapGenerator.GenerateFalloffMap(meshSettings.numVerticesPerLine)));
         }
     }
 
 
-    public void RequestMapData(Vector2 center, Action<MapData> callback)
+    public void RequestHeightMap(Vector2 center, Action<HeightMap> callback)
     {
         ThreadStart threadStart = delegate
         {
-            MapDataThread(center, callback);
+            HeightMapThread(center, callback);
         };
 
         new Thread(threadStart).Start();
     }
 
 
-    private void MapDataThread(Vector2 center, Action<MapData> callback)
+    private void HeightMapThread(Vector2 center, Action<HeightMap> callback)
     {
-        MapData mapData = GenerateMapData(center);
-        lock (mapDataThreadDataQueue)
+        HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVerticesPerLine, meshSettings.numVerticesPerLine, heightMapSettings, center);
+        lock (heightMapThreadDataQueue)
         {
-            mapDataThreadDataQueue.Enqueue(new ThreadData<MapData>(callback, mapData));
+            heightMapThreadDataQueue.Enqueue(new ThreadData<HeightMap>(callback, heightMap));
         }
     }
 
 
-    public void RequestMeshData(MapData mapData, int levelOfDetail, Action<MeshData> callback)
+    public void RequestMeshData(HeightMap heightMap, int levelOfDetail, Action<MeshData> callback)
     {
         ThreadStart threadStart = delegate
         {
-            MeshDataThread(mapData, levelOfDetail, callback);
+            MeshDataThread(heightMap, levelOfDetail, callback);
         };
 
         new Thread(threadStart).Start();
     }
 
 
-    private void MeshDataThread(MapData mapData, int levelOfDetail, Action<MeshData> callback)
+    private void MeshDataThread(HeightMap heightMap, int levelOfDetail, Action<MeshData> callback)
     {
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, terrainData.meshHeightMultiplier, terrainData.meshHeightCurve, levelOfDetail, terrainData.enableFlatShadding);
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap.values, levelOfDetail, meshSettings);
         lock (meshDataThreadDataQueue)
         {
             meshDataThreadDataQueue.Enqueue(new ThreadData<MeshData>(callback, meshData));
@@ -134,11 +112,11 @@ public class MapGenerator : MonoBehaviour
 
     private void Update()
     {
-        if (mapDataThreadDataQueue.Count > 0)
+        if (heightMapThreadDataQueue.Count > 0)
         {
-            for (int i = 0; i < mapDataThreadDataQueue.Count; i++)
+            for (int i = 0; i < heightMapThreadDataQueue.Count; i++)
             {
-                ThreadData<MapData> threadInfo = mapDataThreadDataQueue.Dequeue();
+                ThreadData<HeightMap> threadInfo = heightMapThreadDataQueue.Dequeue();
                 threadInfo.callback(threadInfo.parameter);
             }
         }
@@ -154,45 +132,18 @@ public class MapGenerator : MonoBehaviour
     }
 
 
-    private MapData GenerateMapData(Vector2 center)
-    {
-        float[,] noiseMap = NoiseMapGenerator.GenerateNoiseMap(mapChunkSize + 2, mapChunkSize + 2, noiseData.seed, noiseData.scale, noiseData.octaves, noiseData.persistence, noiseData.lacunarity, center + noiseData.offset, noiseData.normalizedMode);
-        
-        if (terrainData.enableFalloffMap)
-        {
-            if (falloffMap == null)
-            {
-                falloffMap = FalloffMapGenerator.GenerateFalloffMap(mapChunkSize + 2);
-            }
-           
-            for (int x = 0; x < mapChunkSize + 2; x++)
-            {
-                for (int y = 0; y < mapChunkSize + 2; y++)
-                {
-                    if (terrainData.enableFalloffMap)           
-                    {
-                        noiseMap[x, y] = Mathf.Clamp01(noiseMap[x, y] - falloffMap[x, y]);
-                    }
-                }
-            }
-        }
-
-        return new MapData(noiseMap);
-    }
-
-
     private void OnValidate() 
     {    
-        if (noiseData != null)
+        if (heightMapSettings != null)
         {
-            noiseData.OnValuesUpdated -= OnValuesUpdated;
-            noiseData.OnValuesUpdated += OnValuesUpdated;
+            heightMapSettings.OnValuesUpdated -= OnValuesUpdated;
+            heightMapSettings.OnValuesUpdated += OnValuesUpdated;
         }
 
-        if (terrainData != null)
+        if (meshSettings != null)
         {
-            terrainData.OnValuesUpdated -= OnValuesUpdated;
-            terrainData.OnValuesUpdated += OnValuesUpdated;
+            meshSettings.OnValuesUpdated -= OnValuesUpdated;
+            meshSettings.OnValuesUpdated += OnValuesUpdated;
         }
 
         if (textureData != null)
@@ -213,16 +164,5 @@ public class MapGenerator : MonoBehaviour
             this.callback = callback;
             this.parameter = parameter;
         }
-    }
-}
-
-
-public struct MapData
-{
-    public readonly float[,] noiseMap;
-
-    public MapData(float[,] noiseMap)
-    {
-        this.noiseMap = noiseMap;
     }
 }
