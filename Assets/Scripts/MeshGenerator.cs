@@ -13,7 +13,7 @@ public static class MeshGenerator
         int meshSizeUnsimplified = borderSize - 2;
 
         float topLeftX = (meshSizeUnsimplified - 1) / 2f;
-        float topLeftZ = (meshSizeUnsimplified - 1) / 2f;
+        // float topLeftZ = (meshSizeUnsimplified - 1) / -2f;
    
         int verticesPerLine = (meshSize - 1) / simplificationIncrement + 1;
 
@@ -49,7 +49,8 @@ public static class MeshGenerator
                 int vertexIndex = vertexIndexMap[x, y];
                 Vector2 uv = new Vector2((x - simplificationIncrement) / (float)meshSize, (y - simplificationIncrement) / (float)meshSize);
                 float heightValue = heightMap[x, y];
-                Vector3 vertexPosition = new Vector3 ((topLeftX + uv.x * meshSizeUnsimplified) * meshSettings.scale, heightValue, (topLeftZ - uv.y * meshSizeUnsimplified) * meshSettings.scale);
+                Vector3 vertexPosition = new Vector3((topLeftX - uv.x * meshSizeUnsimplified) * meshSettings.scale, heightValue, (uv.y * meshSizeUnsimplified - topLeftX) * meshSettings.scale);
+
 
                 meshData.AddVertex(vertexPosition, uv, vertexIndex);
 

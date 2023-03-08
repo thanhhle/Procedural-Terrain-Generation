@@ -125,7 +125,7 @@ public class TerrainGenerator : MonoBehaviour
             this.meshCollider = meshObject.AddComponent<MeshCollider>();
             this.meshRenderer.material = material;
 
-            this.meshObject.transform.position = new Vector3(position.x, 0, position.y);
+            this.meshObject.transform.position = new Vector3(position.x, 0, -position.y);
             this.meshObject.transform.parent = parent;
 
             SetVisible(false);
