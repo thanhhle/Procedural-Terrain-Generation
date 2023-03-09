@@ -6,32 +6,34 @@ public class TerrainGenerator : MonoBehaviour
 {
     const float characterMoveThresholdForChunkUpdate = 25f;
     const float sqrCharacterMoveThresholdForChunkUpdate = characterMoveThresholdForChunkUpdate * characterMoveThresholdForChunkUpdate;
-    const float colliderGenerationDistanceThreshold = 5;
 
     public int colliderLODIndex;
     public LODData[] detailLevels;
-    public static float maxViewDistance;
+
+    public MeshSettings meshSettings;
+    public HeightMapSettings heightMapSettings;
+    public TextureData textureData;
 
     public Transform character;
-    public Material mapMaterial;
+    public Material terrainMaterial;
 
-    public static Vector2 characterPosition;
+    Vector2 characterPosition;
     Vector2 lastCharacterPosition;
 
-    static MapGenerator mapGenerator;
     private float meshWorldSize;
     private int visibleChunks;
 
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
-    static List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
+    List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
 
     void Start()
     {
-        mapGenerator = FindObjectOfType<MapGenerator>();
-
-        maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
-        meshWorldSize = mapGenerator.meshSettings.meshWorldSize - 1;
+        textureData.ApplyToMaterial(terrainMaterial);
+        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
+        
+        float maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
+        meshWorldSize = meshSettings.meshWorldSize - 1;
         visibleChunks = Mathf.RoundToInt(maxViewDistance / meshWorldSize);
 
         UpdateVisibleChunks();
@@ -44,9 +46,9 @@ public class TerrainGenerator : MonoBehaviour
 
         if (characterPosition != lastCharacterPosition)
         {
-            foreach(TerrainChunk chunk in visibleTerrainChunks)
+            foreach(TerrainChunk terrainChunk in visibleTerrainChunks)
             {
-                chunk.UpdateCollisionMesh();
+                terrainChunk.UpdateCollisionMesh();
             }
         }
 
@@ -82,10 +84,25 @@ public class TerrainGenerator : MonoBehaviour
                 }
                 else
                 {
-                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, meshWorldSize, detailLevels, colliderLODIndex, transform, mapMaterial);
+                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, heightMapSettings, meshSettings, detailLevels, colliderLODIndex, character, transform, terrainMaterial);
                     terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
+                    terrainChunk.onVisibilityChanged += OnTerrainChunkVisibilityChanged;
+                    terrainChunk.Load();
                 }
             }
+        }
+    }
+
+
+    void OnTerrainChunkVisibilityChanged(TerrainChunk terrainChunk, bool isVisible)
+    {
+        if(isVisible)
+        {
+            visibleTerrainChunks.Add(terrainChunk);
+        }
+        else
+        {
+            visibleTerrainChunks.Remove(terrainChunk);
         }
     }
 }

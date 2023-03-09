@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class TerrainChunk
 {
+    public event System.Action<TerrainChunk, bool> onVisibilityChanged;
+    const float colliderGenerationDistanceThreshold = 5;
+
     GameObject meshObject;
     Vector2 sampleCenter;
     Bounds bounds;
@@ -65,6 +68,11 @@ public class TerrainChunk
         }
 
         this.maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
+    }
+
+
+    public void Load()
+    {
         ThreadDataRequester.RequestData(() => HeightMapGenerator.GenerateHeightMap(meshSettings.numVerticesPerLine, meshSettings.numVerticesPerLine, heightMapSettings, sampleCenter), OnHeightMapReceived);
     }
 
@@ -92,6 +100,8 @@ public class TerrainChunk
         if (this.heightMapReceived)
         {
             float characterDistancefromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(characterPosition));
+
+            bool wasVisible = IsVisible ();
             bool visible = characterDistancefromNearestEdge <= maxViewDistance;
 
             if (visible)
@@ -119,14 +129,20 @@ public class TerrainChunk
                     }
                     else if (!lodMesh.hasRequestedMesh)
                     {
-                        lodMesh.RequestMesh(heightMap);
+                        lodMesh.RequestMesh(heightMap, meshSettings);
                     }
                 }
-
-                visibleTerrainChunks.Add(this);     
             }
-        
-            SetVisible(visible);
+
+
+            if (wasVisible != visible) 
+            {	
+				SetVisible(visible);
+				if (onVisibilityChanged != null) 
+                {
+					onVisibilityChanged (this, visible);
+				}
+			}
         }
     }
 
@@ -141,7 +157,7 @@ public class TerrainChunk
             {
                 if (!lodMeshes[colliderLODIndex].hasRequestedMesh)
                 {
-                    lodMeshes[colliderLODIndex].RequestMesh(heightMap);
+                    lodMeshes[colliderLODIndex].RequestMesh(heightMap, meshSettings);
                 }
             }
 
@@ -156,10 +172,12 @@ public class TerrainChunk
         }    
     }
 
+
     public void SetVisible(bool visible)
     {
         meshObject.SetActive(visible);
     }
+
 
     public bool IsVisible()
     {
@@ -191,7 +209,6 @@ class LODMesh
     public void RequestMesh(HeightMap heightMap, MeshSettings meshSettings)
     {
         this.hasRequestedMesh = true;
-        mapGenerator.RequestMeshData(heightMap, this.lod, OnMeshDataReceived);
         ThreadDataRequester.RequestData(() => MeshGenerator.GenerateTerrainMesh(heightMap.values, meshSettings, lod), OnMeshDataReceived);
     }
 }

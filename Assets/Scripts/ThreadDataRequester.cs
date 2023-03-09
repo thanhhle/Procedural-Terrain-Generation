@@ -7,7 +7,7 @@ using UnityEngine;
 public class ThreadDataRequester : MonoBehaviour
 {
     static ThreadDataRequester instance;
-    Queue<ThreadData<object>> dataQueue = new Queue<ThreadData<object>>();
+    Queue<ThreadData> dataQueue = new Queue<ThreadData>();
 
     private void Awake() {
         instance = FindObjectOfType<ThreadDataRequester>();
@@ -41,7 +41,7 @@ public class ThreadDataRequester : MonoBehaviour
         {
             for (int i = 0; i < dataQueue.Count; i++)
             {
-                ThreadData<object> threadData = dataQueue.Dequeue();
+                ThreadData threadData = dataQueue.Dequeue();
                 threadData.callback(threadData.parameter);
             }
         }
@@ -49,7 +49,7 @@ public class ThreadDataRequester : MonoBehaviour
 
 
 
-    struct ThreadData<T>
+    struct ThreadData
     {
         public readonly Action<object> callback;
         public readonly object parameter;
