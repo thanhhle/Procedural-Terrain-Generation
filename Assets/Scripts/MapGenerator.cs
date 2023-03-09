@@ -22,9 +22,6 @@ public class MapGenerator : MonoBehaviour
 
     float[,] falloffMap;
 
-    Queue<ThreadData<HeightMap>> heightMapThreadDataQueue = new Queue<ThreadData<HeightMap>>();
-    Queue<ThreadData<MeshData>> meshDataThreadDataQueue = new Queue<ThreadData<MeshData>>();
-
 
     void Start() 
     {
@@ -47,6 +44,7 @@ public class MapGenerator : MonoBehaviour
         textureData.ApplyToMaterial(terrainMaterial);
     }
 
+
     public void RenderMap()
     {
         textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
@@ -64,70 +62,6 @@ public class MapGenerator : MonoBehaviour
         else if (mapType == MapType.FalloffMap)
         {
             mapRenderer.RenderMap(TextureGenerator.GenerateTextureFromHeightMap(FalloffMapGenerator.GenerateFalloffMap(meshSettings.numVerticesPerLine)));
-        }
-    }
-
-
-    public void RequestHeightMap(Vector2 center, Action<HeightMap> callback)
-    {
-        ThreadStart threadStart = delegate
-        {
-            HeightMapThread(center, callback);
-        };
-
-        new Thread(threadStart).Start();
-    }
-
-
-    private void HeightMapThread(Vector2 center, Action<HeightMap> callback)
-    {
-        HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVerticesPerLine, meshSettings.numVerticesPerLine, heightMapSettings, center);
-        lock (heightMapThreadDataQueue)
-        {
-            heightMapThreadDataQueue.Enqueue(new ThreadData<HeightMap>(callback, heightMap));
-        }
-    }
-
-
-    public void RequestMeshData(HeightMap heightMap, int levelOfDetail, Action<MeshData> callback)
-    {
-        ThreadStart threadStart = delegate
-        {
-            MeshDataThread(heightMap, levelOfDetail, callback);
-        };
-
-        new Thread(threadStart).Start();
-    }
-
-
-    private void MeshDataThread(HeightMap heightMap, int levelOfDetail, Action<MeshData> callback)
-    {
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(heightMap.values, levelOfDetail, meshSettings);
-        lock (meshDataThreadDataQueue)
-        {
-            meshDataThreadDataQueue.Enqueue(new ThreadData<MeshData>(callback, meshData));
-        }
-    }
-
-
-    private void Update()
-    {
-        if (heightMapThreadDataQueue.Count > 0)
-        {
-            for (int i = 0; i < heightMapThreadDataQueue.Count; i++)
-            {
-                ThreadData<HeightMap> threadInfo = heightMapThreadDataQueue.Dequeue();
-                threadInfo.callback(threadInfo.parameter);
-            }
-        }
-
-        if (meshDataThreadDataQueue.Count > 0)
-        {
-            for (int i = 0; i < meshDataThreadDataQueue.Count; i++)
-            {
-                ThreadData<MeshData> threadInfo = meshDataThreadDataQueue.Dequeue();
-                threadInfo.callback(threadInfo.parameter);
-            }
         }
     }
 
@@ -150,19 +84,6 @@ public class MapGenerator : MonoBehaviour
         {
             textureData.OnValuesUpdated -= OnTextureValuesUpdated;
             textureData.OnValuesUpdated += OnTextureValuesUpdated;
-        }
-    }
-
-
-    struct ThreadData<T>
-    {
-        public readonly Action<T> callback;
-        public readonly T parameter;
-
-        public ThreadData(Action<T> callback, T parameter)
-        {
-            this.callback = callback;
-            this.parameter = parameter;
         }
     }
 }
