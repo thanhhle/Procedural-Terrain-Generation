@@ -9,7 +9,8 @@ public class ThreadDataRequester : MonoBehaviour
     static ThreadDataRequester instance;
     Queue<ThreadData> dataQueue = new Queue<ThreadData>();
 
-    private void Awake() {
+    private void Awake() 
+    {
         instance = FindObjectOfType<ThreadDataRequester>();
     }
 

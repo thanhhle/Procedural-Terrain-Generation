@@ -12,7 +12,7 @@ public class TerrainGenerator : MonoBehaviour
 
     public MeshSettings meshSettings;
     public HeightMapSettings heightMapSettings;
-    public TextureData textureData;
+    public TextureSettings textureSettings;
 
     public Transform character;
     public Material terrainMaterial;
@@ -29,8 +29,8 @@ public class TerrainGenerator : MonoBehaviour
 
     void Start()
     {
-        textureData.ApplyToMaterial(terrainMaterial);
-        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
+        textureSettings.ApplyToMaterial(terrainMaterial);
+        textureSettings.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
         
         float maxViewDistance = detailLevels[detailLevels.Length - 1].visibleDistanceThreshold;
         meshWorldSize = meshSettings.meshWorldSize - 1;
@@ -67,7 +67,7 @@ public class TerrainGenerator : MonoBehaviour
 
         for (int i = 0; i < visibleTerrainChunks.Count; i++)
         {
-            visibleTerrainChunks[i].SetVisible(false);
+            visibleTerrainChunks[i].UpdateTerrainChunk();
         }
 
         visibleTerrainChunks.Clear();

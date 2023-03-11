@@ -51,18 +51,17 @@ public static class MeshGenerator
                 float heightValue = heightMap[x, y];
                 Vector3 vertexPosition = new Vector3((topLeftX - uv.x * meshSizeUnsimplified) * meshSettings.scale, heightValue, (uv.y * meshSizeUnsimplified - topLeftX) * meshSettings.scale);
 
-
                 meshData.AddVertex(vertexPosition, uv, vertexIndex);
 
                 if (x < borderSize - 1 && y < borderSize - 1)
                 {
-                    int a = vertexIndexMap[x, y];
-                    int b = vertexIndexMap[x + simplificationIncrement, y];
-                    int c = vertexIndexMap[x, y + simplificationIncrement];
-                    int d = vertexIndexMap[x + simplificationIncrement, y + simplificationIncrement];
+                    int vertexA = vertexIndexMap[x, y];
+                    int vertexB = vertexIndexMap[x + simplificationIncrement, y];
+                    int vertexC = vertexIndexMap[x, y + simplificationIncrement];
+                    int vertexD = vertexIndexMap[x + simplificationIncrement, y + simplificationIncrement];
 
-                    meshData.AddTriangle(d, a, b);
-                    meshData.AddTriangle(a, d, c);
+                    meshData.AddTriangle(vertexD, vertexA, vertexB);
+                    meshData.AddTriangle(vertexA, vertexD, vertexC);
                 }
 
                 vertexIndex++;
@@ -240,6 +239,7 @@ public class MeshData
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.uv = uvs;
+        
         if (enableFlatShadding)
         {
             mesh.RecalculateNormals();

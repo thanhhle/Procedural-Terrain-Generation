@@ -4,29 +4,26 @@ using UnityEngine;
 
 public class MapPreview : MonoBehaviour
 {
-    public Renderer textureRenderer;
-    public MeshFilter meshFilter;
-    public MeshRenderer meshRenderer;
-
     public bool autoUpdate;
 
     public enum MapType { HeightMap, FalloffMap, Mesh };
     public MapType mapType;
-
-    public HeightMapSettings heightMapSettings;
-    public MeshSettings meshSettings;
-    public TextureData textureData;
-
-    public Material terrainMaterial;
-
+    
     [Range(0, MeshSettings.numSupportedLODs - 1)]
     public int editorPreviewLevelOfDetail;
 
+    public Renderer textureRenderer;
+    public MeshFilter meshFilter;
+    public MeshRenderer meshRenderer;
+    public HeightMapSettings heightMapSettings;
+    public MeshSettings meshSettings;
+    public TextureSettings textureSettings;
+    public Material terrainMaterial;
 
     public void RenderMap()
     {
-        textureData.ApplyToMaterial(terrainMaterial);
-        textureData.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
+        textureSettings.ApplyToMaterial(terrainMaterial);
+        textureSettings.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
 
         HeightMap heightMap = HeightMapGenerator.GenerateHeightMap(meshSettings.numVerticesPerLine, meshSettings.numVerticesPerLine, heightMapSettings, Vector2.zero);
         if (mapType == MapType.HeightMap)
@@ -74,7 +71,7 @@ public class MapPreview : MonoBehaviour
 
     private void OnTextureValuesUpdated()
     {
-        textureData.ApplyToMaterial(terrainMaterial);
+        textureSettings.ApplyToMaterial(terrainMaterial);
     }
 
 
@@ -92,10 +89,10 @@ public class MapPreview : MonoBehaviour
             meshSettings.OnValuesUpdated += OnValuesUpdated;
         }
 
-        if (textureData != null)
+        if (textureSettings != null)
         {
-            textureData.OnValuesUpdated -= OnTextureValuesUpdated;
-            textureData.OnValuesUpdated += OnTextureValuesUpdated;
+            textureSettings.OnValuesUpdated -= OnTextureValuesUpdated;
+            textureSettings.OnValuesUpdated += OnTextureValuesUpdated;
         }
     }
 }

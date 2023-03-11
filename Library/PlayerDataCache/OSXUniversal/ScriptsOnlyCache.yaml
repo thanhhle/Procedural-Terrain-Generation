@@ -9,7 +9,7 @@ ScriptsOnlyBuild:
       - HeightMapSettings
       - TerrainData
       - TerrainGenerator
-      - TextureData
+      - TextureSettings
     Unity.PlasticSCM.Editor.dll:
       - Unity.PlasticSCM.Editor.PlasticWindow
     Unity.Rider.Editor.dll:
@@ -160,7 +160,7 @@ ScriptsOnlyBuild:
         Hash: 4b816a810ddb042a3639720bb00aff6b
       assemblyName: Assembly-CSharp.dll
       namespaceName:
-      className: TextureData
+      className: TextureSettings
     - hash:
         serializedVersion: 2
         Hash: c3d3430df9e3ea95e3e3d587961390fb

@@ -312,11 +312,11 @@
           ]
         },
         {
-          "className": "TextureData",
+          "className": "TextureSettings",
           "fieldInfos": [
             {
               "name": "layers",
-              "type": "TextureData+Layer[]",
+              "type": "TextureSettings+Layer[]",
               "flags": { "value__": 0 },
               "fixedBufferLength": 0,
               "fixedBufferTypename": null
@@ -324,7 +324,7 @@
           ]
         },
         {
-          "className": "TextureData+Layer",
+          "className": "TextureSettings+Layer",
           "fieldInfos": [
             {
               "name": "texture",
@@ -403,8 +403,8 @@
               "fixedBufferTypename": null
             },
             {
-              "name": "textureData",
-              "type": "TextureData",
+              "name": "textureSettings",
+              "type": "TextureSettings",
               "flags": { "value__": 0 },
               "fixedBufferLength": 0,
               "fixedBufferTypename": null
