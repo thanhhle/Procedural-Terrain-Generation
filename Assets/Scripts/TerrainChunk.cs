@@ -7,6 +7,7 @@ public class TerrainChunk
 {
     public event System.Action<TerrainChunk, bool> onVisibilityChanged;
     const float colliderGenerationDistanceThreshold = 5;
+    public Vector2 coord;
 
     GameObject meshObject;
     Vector2 sampleCenter;
@@ -28,21 +29,20 @@ public class TerrainChunk
 
     HeightMapSettings heightMapSettings;
     MeshSettings meshSettings;
-
     Transform character;
 
     public TerrainChunk(Vector2 coord, HeightMapSettings heightMapSettings, MeshSettings meshSettings, LODData[] detailLevels, int colliderLODIndex, Transform parent, Transform character, Material material)
     {
+        this.coord = coord;
         this.heightMapSettings = heightMapSettings;
         this.meshSettings = meshSettings;
         this.character = character;
+        this.detailLevels = detailLevels;
+        this.colliderLODIndex = colliderLODIndex;
 
         this.sampleCenter = coord * meshSettings.meshWorldSize / meshSettings.scale;
         Vector2 position = coord * meshSettings.meshWorldSize;
         this.bounds = new Bounds(position, Vector2.one * meshSettings.meshWorldSize);
-        
-        this.detailLevels = detailLevels;
-        this.colliderLODIndex = colliderLODIndex;
 
         this.meshObject = new GameObject("Terrain Chunk");
         this.meshRenderer = meshObject.AddComponent<MeshRenderer>();
@@ -50,7 +50,7 @@ public class TerrainChunk
         this.meshCollider = meshObject.AddComponent<MeshCollider>();
         this.meshRenderer.material = material;
 
-        this.meshObject.transform.position = new Vector3(position.x, 0, -position.y);
+        this.meshObject.transform.position = new Vector3(position.x, 0, position.y);
         this.meshObject.transform.parent = parent;
 
         SetVisible(false);
@@ -101,7 +101,7 @@ public class TerrainChunk
         {
             float characterDistancefromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(characterPosition));
 
-            bool wasVisible = IsVisible ();
+            bool wasVisible = IsVisible();
             bool visible = characterDistancefromNearestEdge <= maxViewDistance;
 
             if (visible)
@@ -140,7 +140,7 @@ public class TerrainChunk
 				SetVisible(visible);
 				if (onVisibilityChanged != null) 
                 {
-					onVisibilityChanged (this, visible);
+					onVisibilityChanged(this, visible);
 				}
 			}
         }
@@ -152,6 +152,7 @@ public class TerrainChunk
         if (!hasSetCollider)
         {
             float sqrDistanceFromCharacterToEdge = bounds.SqrDistance(characterPosition);
+            float characterDistancefromNearestEdge = Mathf.Sqrt(bounds.SqrDistance(characterPosition));
 
             if (sqrDistanceFromCharacterToEdge < detailLevels[colliderLODIndex].sqrVisibleDistanceThreshold)
             {
@@ -161,7 +162,7 @@ public class TerrainChunk
                 }
             }
 
-            if (sqrDistanceFromCharacterToEdge < colliderGenerationDistanceThreshold * colliderGenerationDistanceThreshold)
+            if (characterDistancefromNearestEdge < colliderGenerationDistanceThreshold)
             {
                 if (lodMeshes[colliderLODIndex].hasMesh)
                 {

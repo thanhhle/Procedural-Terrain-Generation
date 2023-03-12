@@ -12,8 +12,8 @@ public static class MeshGenerator
         int meshSize = borderSize - 2 * simplificationIncrement;
         int meshSizeUnsimplified = borderSize - 2;
 
-        float topLeftX = (meshSizeUnsimplified - 1) / 2f;
-        // float topLeftZ = (meshSizeUnsimplified - 1) / -2f;
+        float topLeftX = (meshSizeUnsimplified - 1) / -2f;
+        float topLeftZ = (meshSizeUnsimplified - 1) / 2f;
    
         int verticesPerLine = (meshSize - 1) / simplificationIncrement + 1;
 
@@ -23,9 +23,9 @@ public static class MeshGenerator
         int borderVertexIndex = -1;
         int meshVertexIndex = 0;
 
-        for (int x = 0; x < borderSize; x += simplificationIncrement)
+        for (int x = 0; x < borderSize; x += simplificationIncrement)   
         {
-            for (int y = 0; y < borderSize; y += simplificationIncrement)
+            for (int y = 0; y < borderSize; y += simplificationIncrement)        
             {
                 bool isBorderVertex = x == 0 || x == borderSize - 1 || y == 0 || y == borderSize - 1;
                 if (isBorderVertex)
@@ -41,15 +41,14 @@ public static class MeshGenerator
             }
         }
 
-
         for (int x = 0; x < borderSize; x += simplificationIncrement)
         {
-            for (int y = 0; y < borderSize; y += simplificationIncrement)
+            for (int y = 0; y < borderSize; y += simplificationIncrement)    
             {
                 int vertexIndex = vertexIndexMap[x, y];
                 Vector2 uv = new Vector2((x - simplificationIncrement) / (float)meshSize, (y - simplificationIncrement) / (float)meshSize);
                 float heightValue = heightMap[x, y];
-                Vector3 vertexPosition = new Vector3((topLeftX - uv.x * meshSizeUnsimplified) * meshSettings.scale, heightValue, (uv.y * meshSizeUnsimplified - topLeftX) * meshSettings.scale);
+                Vector3 vertexPosition = new Vector3((topLeftX + uv.x * meshSizeUnsimplified) * meshSettings.scale, heightValue, (topLeftZ - uv.y * meshSizeUnsimplified) * meshSettings.scale);
 
                 meshData.AddVertex(vertexPosition, uv, vertexIndex);
 
@@ -60,8 +59,8 @@ public static class MeshGenerator
                     int vertexC = vertexIndexMap[x, y + simplificationIncrement];
                     int vertexD = vertexIndexMap[x + simplificationIncrement, y + simplificationIncrement];
 
-                    meshData.AddTriangle(vertexD, vertexA, vertexB);
                     meshData.AddTriangle(vertexA, vertexD, vertexC);
+                    meshData.AddTriangle(vertexD, vertexA, vertexB);
                 }
 
                 vertexIndex++;

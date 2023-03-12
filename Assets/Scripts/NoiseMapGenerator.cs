@@ -20,7 +20,7 @@ public static class NoiseMapGenerator
         for (int i = 0; i < settings.octaves; i++)
         {
             float offsetX = pseudoRandomGenerator.Next(-100000, 100000) + settings.offset.x + sampleCenter.x;
-            float offsetY = pseudoRandomGenerator.Next(-100000, 100000) - settings.offset.y + sampleCenter.y;
+            float offsetY = pseudoRandomGenerator.Next(-100000, 100000) - settings.offset.y - sampleCenter.y;
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
 
             maxGlobalNoiseValue += amplitude;
@@ -43,8 +43,8 @@ public static class NoiseMapGenerator
 
                 for (int i = 0; i < settings.octaves; i++)
                 {
-                    float sampleX = (x - halfWidth - octaveOffsets[i].x) / settings.scale * frequency;
-                    float sampleY = (y - halfHeight - octaveOffsets[i].y) / settings.scale * frequency;
+                    float sampleX = (x - halfWidth + octaveOffsets[i].x) / settings.scale * frequency;
+                    float sampleY = (y - halfHeight + octaveOffsets[i].y) / settings.scale * frequency;
 
                     float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
                     noiseValue += perlinValue * amplitude;

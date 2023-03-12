@@ -5,16 +5,16 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638113317670000000
-    m_Hash: 4179566897
+      ticks: 638141681890000000
+    m_Hash: 54369037
   m_LockFileStatus:
     m_FilePath: /Users/thanhle/Documents/CPP/Master's/Procedural Terrain Generation/Packages/packages-lock.json
     m_PathExists: 1
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638113317670000000
-    m_Hash: 4197502262
+      ticks: 638141681890000000
+    m_Hash: 112837526
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
 m_PackageAssets:
@@ -402,12 +402,12 @@ m_PackageAssets:
         url: https://github.cds.internal.unity3d.com/unity/com.unity.ide.visualstudio.git
         revision: 8d436ff053b9c59677b5e9799208143553cd02d9
         path: 
-    - packageId: com.unity.ide.vscode@1.2.4
+    - packageId: com.unity.ide.vscode@1.2.5
       testable: 0
       isDirectDependency: 1
-      version: 1.2.4
+      version: 1.2.5
       source: 1
-      resolvedPath: /Users/thanhle/Documents/CPP/Master's/Procedural Terrain Generation/Library/PackageCache/com.unity.ide.vscode@1.2.4
+      resolvedPath: /Users/thanhle/Documents/CPP/Master's/Procedural Terrain Generation/Library/PackageCache/com.unity.ide.vscode@1.2.5
       assetPath: Packages/com.unity.ide.vscode
       name: com.unity.ide.vscode
       displayName: Visual Studio Code Editor
@@ -467,13 +467,13 @@ m_PackageAssets:
       entitlements:
         isAllowed: 1
       isAssetStorePackage: 0
-      datePublishedTicks: 637660806170000000
+      datePublishedTicks: 637800255360000000
       documentationUrl: 
       hasRepository: 1
       repository:
         type: git
-        url: git+https://github.com/Unity-Technologies/com.unity.ide.vscode.git
-        revision: 1f4f605d5c988cb610c372b5c5216c46cc8f5d30
+        url: https://github.com/Unity-Technologies/com.unity.ide.vscode.git
+        revision: b0740c80bfc2440527c317109f7c3d9100132722
         path: 
     - packageId: com.unity.test-framework@1.1.29
       testable: 0
@@ -2750,16 +2750,30 @@ m_PackageAssets:
         email: 
         url: 
       category: Libraries
-      type: 
+      type: asset
       description: Custom version of the nunit package build to work with Unity.
         Used by the Unity Test Framework.
       status: 4
       errors: []
       versions:
         all:
+        - 0.1.5-preview
+        - 0.1.6-preview
+        - 0.1.9-preview
+        - 1.0.0
+        - 1.0.5
         - 1.0.6
+        - 2.0.2
+        - 2.0.3
         compatible:
+        - 0.1.5-preview
+        - 0.1.6-preview
+        - 0.1.9-preview
+        - 1.0.0
+        - 1.0.5
         - 1.0.6
+        - 2.0.2
+        - 2.0.3
         verified: 1.0.6
       dependencies: []
       resolvedDependencies: []
@@ -2775,11 +2789,11 @@ m_PackageAssets:
         isDefault: 1
         capabilities: 7
       hasRegistry: 1
-      hideInEditor: 1
+      hideInEditor: 0
       entitlements:
         isAllowed: 1
       isAssetStorePackage: 0
-      datePublishedTicks: 0
+      datePublishedTicks: 637429759280000000
       documentationUrl: 
       hasRepository: 1
       repository:
@@ -2816,10 +2830,34 @@ m_PackageAssets:
       errors: []
       versions:
         all:
+        - 1.0.0-preview.2
+        - 1.0.0-preview.3
+        - 1.0.0-preview.4
+        - 1.0.1-preview.1
+        - 1.1.2
+        - 2.0.0-preview
+        - 2.0.0-preview.1
+        - 2.0.0-preview.2
         - 2.0.0
+        - 2.0.1-preview.1
+        - 2.0.2
+        - 3.0.1
+        - 3.0.2
         compatible:
+        - 1.0.0-preview.2
+        - 1.0.0-preview.3
+        - 1.0.0-preview.4
+        - 1.0.1-preview.1
+        - 1.1.2
+        - 2.0.0-preview
+        - 2.0.0-preview.1
+        - 2.0.0-preview.2
         - 2.0.0
-        verified: 2.0.0
+        - 2.0.1-preview.1
+        - 2.0.2
+        - 3.0.1
+        - 3.0.2
+        verified: 2.0.2
       dependencies: []
       resolvedDependencies: []
       keywords: []
@@ -2835,7 +2873,7 @@ m_PackageAssets:
       entitlements:
         isAllowed: 1
       isAssetStorePackage: 0
-      datePublishedTicks: 0
+      datePublishedTicks: 637237898320000000
       documentationUrl: 
       hasRepository: 1
       repository:
@@ -2857,7 +2895,7 @@ m_PackageAssets:
         email: 
         url: 
       category: 
-      type: 
+      type: asset
       description: 'This package defines common components used by multiple Game
         Service packages.
 
@@ -2868,8 +2906,46 @@ m_PackageAssets:
       versions:
         all:
         - 1.0.1
+        - 1.1.0-pre.7
+        - 1.1.0-pre.8
+        - 1.1.0-pre.9
+        - 1.1.0-pre.10
+        - 1.1.0-pre.11
+        - 1.1.0-pre.41
+        - 1.1.0-pre.69
+        - 1.2.0
+        - 1.3.1
+        - 1.3.2
+        - 1.4.0
+        - 1.4.1
+        - 1.4.2
+        - 1.4.3
+        - 1.5.2
+        - 1.6.0
+        - 1.7.0
+        - 1.7.1
+        - 1.8.1
         compatible:
         - 1.0.1
+        - 1.1.0-pre.7
+        - 1.1.0-pre.8
+        - 1.1.0-pre.9
+        - 1.1.0-pre.10
+        - 1.1.0-pre.11
+        - 1.1.0-pre.41
+        - 1.1.0-pre.69
+        - 1.2.0
+        - 1.3.1
+        - 1.3.2
+        - 1.4.0
+        - 1.4.1
+        - 1.4.2
+        - 1.4.3
+        - 1.5.2
+        - 1.6.0
+        - 1.7.0
+        - 1.7.1
+        - 1.8.1
         verified: 1.0.1
       dependencies:
       - name: com.unity.modules.unitywebrequest
@@ -2886,11 +2962,11 @@ m_PackageAssets:
         isDefault: 1
         capabilities: 7
       hasRegistry: 1
-      hideInEditor: 1
+      hideInEditor: 0
       entitlements:
         isAllowed: 1
       isAssetStorePackage: 0
-      datePublishedTicks: 0
+      datePublishedTicks: 637604883250000000
       documentationUrl: 
       hasRepository: 1
       repository:

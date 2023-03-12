@@ -29,6 +29,12 @@ public class TerrainGenerator : MonoBehaviour
 
     void Start()
     {
+        Invoke("CreateTerrain", 0.5f);
+    }
+
+
+    public void CreateTerrain()
+    {
         textureSettings.ApplyToMaterial(terrainMaterial);
         textureSettings.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
         
@@ -41,7 +47,7 @@ public class TerrainGenerator : MonoBehaviour
 
 
     void Update()
-    {
+    {       
         characterPosition = new Vector2(character.position.x, character.position.z);
 
         if (characterPosition != lastCharacterPosition)
@@ -62,33 +68,36 @@ public class TerrainGenerator : MonoBehaviour
 
     void UpdateVisibleChunks()
     {
-        int currentChunkCoordX = Mathf.RoundToInt(characterPosition.x / meshWorldSize);
-        int currentChunkCoordY = Mathf.RoundToInt(characterPosition.y / meshWorldSize);
-
-        for (int i = 0; i < visibleTerrainChunks.Count; i++)
+        HashSet<Vector2> updatedChunkCoords = new HashSet<Vector2>();
+        for (int i = visibleTerrainChunks.Count - 1; i >= 0; i--)
         {
+            updatedChunkCoords.Add(visibleTerrainChunks[i].coord);
             visibleTerrainChunks[i].UpdateTerrainChunk();
         }
 
-        visibleTerrainChunks.Clear();
+        int currentChunkCoordX = Mathf.RoundToInt(characterPosition.x / meshWorldSize);
+        int currentChunkCoordY = Mathf.RoundToInt(characterPosition.y / meshWorldSize);
 
         for (int x = -visibleChunks; x <= visibleChunks; x++)
         {
             for (int y = -visibleChunks; y <= visibleChunks; y++)
             {
                 Vector2 viewedChunkCoord = new Vector2(currentChunkCoordX + x, currentChunkCoordY + y);
-                if (terrainChunkDictionary.ContainsKey(viewedChunkCoord))
+                if (!updatedChunkCoords.Contains(viewedChunkCoord))
                 {
-                    TerrainChunk terrainChunk = terrainChunkDictionary[viewedChunkCoord];
-                    terrainChunk.UpdateTerrainChunk();
-                }
-                else
-                {
-                    TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, heightMapSettings, meshSettings, detailLevels, colliderLODIndex, character, transform, terrainMaterial);
-                    terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
-                    terrainChunk.onVisibilityChanged += OnTerrainChunkVisibilityChanged;
-                    terrainChunk.Load();
-                }
+                    if (terrainChunkDictionary.ContainsKey(viewedChunkCoord))
+                    {
+                        TerrainChunk terrainChunk = terrainChunkDictionary[viewedChunkCoord];
+                        terrainChunk.UpdateTerrainChunk();
+                    }
+                    else
+                    {
+                        TerrainChunk terrainChunk = new TerrainChunk(viewedChunkCoord, heightMapSettings, meshSettings, detailLevels, colliderLODIndex, transform, character, terrainMaterial);
+                        terrainChunkDictionary.Add(viewedChunkCoord, terrainChunk);
+                        terrainChunk.onVisibilityChanged += OnTerrainChunkVisibilityChanged;
+                        terrainChunk.Load();
+                    }
+                } 
             }
         }
     }

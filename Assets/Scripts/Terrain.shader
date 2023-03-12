@@ -2,7 +2,7 @@ Shader "Custom/Terrain"
 {
 	Properties 
     {
-		testTexture("Texture", 2D) = "white"{}
+		testTexture("Texture", 2D) = "white" {}
 		testScale("Scale", Float) = 1
 	}
 
@@ -16,7 +16,7 @@ Shader "Custom/Terrain"
 		#pragma surface surf Standard fullforwardshadows
 
 		// Use shader model 3.0 target, to get nicer looking lighting
-		#pragma target 3.0
+		#pragma target 3.5
 
 		const static int maxLayerCount = 8;
 		const static float epsilon = 0.0004;
