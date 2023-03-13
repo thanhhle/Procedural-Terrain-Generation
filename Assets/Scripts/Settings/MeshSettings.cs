@@ -25,7 +25,7 @@ public class MeshSettings : AutoUpdate
     {
         get
         {
-            return supportedChunkSizes[(enableFlatShadding) ? flatShaddedChunkSizeIndex : chunkSizeIndex] + 1;
+            return supportedChunkSizes[(enableFlatShadding) ? flatShaddedChunkSizeIndex : chunkSizeIndex] + 5;
         }
     }
 
@@ -34,7 +34,7 @@ public class MeshSettings : AutoUpdate
     {
         get
         {
-            return (numVerticesPerLine - 1 - 2) * scale;
+            return (numVerticesPerLine - 3) * scale;
         }
     }
 }

@@ -26,14 +26,15 @@ public class TerrainGenerator : MonoBehaviour
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
     List<TerrainChunk> visibleTerrainChunks = new List<TerrainChunk>();
 
-
+    /*
     void Start()
     {
         Invoke("CreateTerrain", 0.5f);
     }
+    */
 
 
-    public void CreateTerrain()
+    void Start()
     {
         textureSettings.ApplyToMaterial(terrainMaterial);
         textureSettings.UpdateMeshHeights(terrainMaterial, heightMapSettings.minHeight, heightMapSettings.maxHeight);
