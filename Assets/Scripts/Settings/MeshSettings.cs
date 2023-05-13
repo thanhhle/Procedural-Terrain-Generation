@@ -6,7 +6,7 @@ using UnityEngine;
 public class MeshSettings : AutoUpdate
 {
     public float scale = 2.5f;
-    public bool enableFlatShadding;
+    public bool enableFlatShading;
 
     public const int numSupportedLODs = 5;
     public const int numSupportedChunkSizes = 9;
@@ -25,7 +25,7 @@ public class MeshSettings : AutoUpdate
     {
         get
         {
-            return supportedChunkSizes[(enableFlatShadding) ? flatShaddedChunkSizeIndex : chunkSizeIndex] + 5;
+            return supportedChunkSizes[(enableFlatShading) ? flatShaddedChunkSizeIndex : chunkSizeIndex] + 5;
         }
     }
 

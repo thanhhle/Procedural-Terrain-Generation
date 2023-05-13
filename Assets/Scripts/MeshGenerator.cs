@@ -11,7 +11,7 @@ public static class MeshGenerator
 
         Vector2 topLeft = new Vector2(-1, 1) * meshSettings.meshWorldSize / 2f;
 
-        MeshData meshData = new MeshData(numVerticesPerLine, skipIncrement, meshSettings.enableFlatShadding);
+        MeshData meshData = new MeshData(numVerticesPerLine, skipIncrement, meshSettings.enableFlatShading);
 
         int[,] vertexIndexMap = new int[numVerticesPerLine, numVerticesPerLine];
         int outOfMeshVertexIndex = -1;
@@ -148,9 +148,9 @@ public class MeshData
     EdgeConnectionVertexData[] edgeConnectionVertices;
     int edgeConnectionVertexIndex;
 
-    private bool enableFlatShadding;
+    private bool enableFlatShading;
 
-    public MeshData(int numVerticesPerLine, int skipIncrement, bool enableFlatShadding)
+    public MeshData(int numVerticesPerLine, int skipIncrement, bool enableFlatShading)
     {
         int numMeshEdgeVertices = (numVerticesPerLine - 2) * 4 - 4;
         int numEdgeConnectionVertices = (skipIncrement - 1) * (numVerticesPerLine - 5) / skipIncrement * 4;
@@ -168,7 +168,7 @@ public class MeshData
         outOfMeshVertices = new Vector3[numVerticesPerLine * 4 - 4];
         outOfMeshTriangles = new int[(numVerticesPerLine - 2) * 24];
 
-        this.enableFlatShadding = enableFlatShadding;
+        this.enableFlatShading = enableFlatShading;
     }
 
     public void AddVertex(Vector3 vertexPosition, Vector2 uv, int vertexIndex)
@@ -284,7 +284,7 @@ public class MeshData
 
     public void ProcessMesh()
     {
-        if (enableFlatShadding)
+        if (enableFlatShading)
         {
             FlatShading();
         }
@@ -326,7 +326,7 @@ public class MeshData
         mesh.triangles = triangles;
         mesh.uv = uvs;
         
-        if (enableFlatShadding)
+        if (enableFlatShading)
         {
             mesh.RecalculateNormals();
         }

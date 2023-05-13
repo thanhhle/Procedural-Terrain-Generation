@@ -15,11 +15,11 @@ MonoBehaviour:
   autoUpdate: 1
   noiseSettings:
     normalizedMode: 1
-    seed: 0
-    scale: 50
-    octaves: 15
+    seed: 15
+    scale: 40
+    octaves: 10
     persistence: 0.5
-    lacunarity: 2
+    lacunarity: 2.14
     offset: {x: 0, y: 0}
   enableFalloffMap: 0
   heightMultiplier: 30
